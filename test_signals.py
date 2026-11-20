@@ -6,16 +6,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.data_loader import generate_synthetic_panel
-from src.signals import (
+from data_loader import generate_synthetic_panel
+from signals import (
     backwardation_signal,
     curve_convexity,
     front_back_slope,
     roll_yield,
     zscore,
 )
-from src.term_structure import fit_nelson_siegel, fit_panel, nelson_siegel
-from src.backtest import run_backtest
+from term_structure import fit_nelson_siegel, fit_panel, nelson_siegel
+from backtest import run_backtest
 
 
 def make_curve(near_above_far: bool = True) -> pd.DataFrame:
