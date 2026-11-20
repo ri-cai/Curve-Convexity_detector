@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-# allow `python examples/run_analysis.py` from the repo root
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.backtest import run_backtest
-from src.data_loader import load_data
-from src.signals import backwardation_signal
-from src.term_structure import fit_panel
-from src import visualization as viz
+from backtest import run_backtest
+from data_loader import load_data
+from signals import backwardation_signal
+from term_structure import fit_panel
+import visualization as viz
 
 
 def main() -> None:
