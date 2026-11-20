@@ -54,7 +54,7 @@ Z^t = \frac{X^t - \mu_w(X^t)}{\sigma_w(X^t)}
 and a regime label is assigned when $Z^t$ clears $\pm 0.5$ — above is backwardation, below is contango, in between is neutral.
 
 **Backtest (`backtest.py`).**
-A deliberately simple rule: go long the front-month contract when the roll-yield z-score is above an entry threshold, flat otherwise, with round-trip costs charged whenever the position changes. It's meant to show the signal carries information, nothing more.
+A deliberately simple rule: go long the front-month contract when the roll-yield z-score is above an entry threshold, flat otherwise, with round-trip costs charged whenever the position changes. On the synthetic data the slope and level move independently, so there's no edge for the backtest to find (Sharpe ≈ 0). It exercises the pipeline end to end and is ready to run on real data.
 
 **Data (`data_loader.py`).**
 Real multi-maturity crude history needs a paid feed (CME / Bloomberg / Refinitiv), so to keep the repo runnable out of the box `data_loader.py` generates a synthetic WTI-like panel: a mean-reverting log level, a slope process that flips between contango and backwardation, and a small curvature factor. If `yfinance` is installed it also pulls the live front-month series (`CL=F`) as a reference.
@@ -68,6 +68,7 @@ term_structure.py   Nelson-Siegel fitting (single day + whole panel)
 signals.py          roll yield, curve slope, z-score, regime labels
 backtest.py         long-only backtest with transaction costs
 data_loader.py      synthetic WTI panel + optional live front-month
+visualization.py    plotting helpers
 run_analysis.py     end-to-end run / diagnostic plots
 test_signals.py     sanity-check tests for the signal logic
 ```
@@ -76,24 +77,28 @@ test_signals.py     sanity-check tests for the signal logic
 
 ```
 python -m venv .venv && source .venv/bin/activate
-pip install numpy pandas scipy matplotlib yfinance
+pip install -r requirements.txt
 python run_analysis.py
 ```
 
 To call the pieces directly:
 
 ```python
-⟨FILL IN: paste the actual import + call you use, e.g.
 from data_loader import load_data
 from signals import backwardation_signal
 from backtest import run_backtest
-... exactly as your files expose them⟩
+
+panel = load_data(start="2015-01-01", use_live=False)
+signal = backwardation_signal(panel.prices, method="roll_yield",
+                              near=1, far=3, z_window=252, threshold=1.0)
+result = run_backtest(panel.prices, signal, front=1, cost_bps=2.0)
+print(result.summary())
 ```
 
 ## Tests
 
 ```
-pytest test_signals.py
+pytest -q
 ```
 
 The tests check the signal has the right sign in known contango / backwardation cases, that the Nelson-Siegel fit recovers sensible parameters, and that the backtest runs end to end.
